@@ -11,6 +11,7 @@ const envinfo = require('envinfo');
 const path = require('path');
 const validateProjectName = require('validate-npm-package-name');
 const fse = require('fs-extra');
+const os = require('os');
 
 const packageJson = require('./package.json');
 
@@ -75,7 +76,7 @@ if (typeof projectName === 'undefined') {
   process.exit(1);
 }
 
-createApp(projectName);
+createApp(projectName, program.verbose, program.template, program.useNpm);
 
 function createApp(projectName, verbose, template, useNpm, useTypeScript) {
   const root = path.resolve(projectName);
@@ -87,6 +88,21 @@ function createApp(projectName, verbose, template, useNpm, useTypeScript) {
     process.exit(1);
   }
   console.log();
+
+  console.log(`正在为你创建新项目...`);
+  console.log(`可以在目录 ${chalk.green(root)} 下查看`);
+  console.log();
+
+  const packageJson = {
+    name: appName,
+    version: '0.1.0',
+    private: true,
+  };
+
+  fse.writeFileSync(
+    path.join(root, 'package.json'),
+    JSON.stringify(packageJson, null, 2) + os.EOL
+  );
 }
 
 function checkAppName(appName) {

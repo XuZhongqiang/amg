@@ -12,6 +12,7 @@ const path = require('path');
 const validateProjectName = require('validate-npm-package-name');
 const fse = require('fs-extra');
 const os = require('os');
+const execSync = require('child_process').execSync;
 
 const packageJson = require('./package.json');
 
@@ -30,7 +31,7 @@ const program = new commander.Command()
   .on('--help', () => {
     console.log(`    只有 ${chalk.green('<project-directory>')} 是必需的`);
     console.log();
-    // TODO: 介绍模板的试用
+    // TODO: 介绍模板的使用
     console.log(
       `    你还可以通过 ${chalk.cyan('--template')} 命令来指定模板创建项目`
     );
@@ -78,7 +79,14 @@ if (typeof projectName === 'undefined') {
 
 createApp(projectName, program.verbose, program.template, program.useNpm);
 
-function createApp(projectName, verbose, template, useNpm, useTypeScript) {
+/**
+ *
+ * @param {*} projectName
+ * @param {*} verbose
+ * @param {*} template eg: 'typescript'用template作为字段来选择下载哪个模板
+ * @param {*} useNpm
+ */
+function createApp(projectName, verbose, template, useNpm) {
   const root = path.resolve(projectName);
   const appName = path.basename(root);
 
@@ -103,6 +111,9 @@ function createApp(projectName, verbose, template, useNpm, useTypeScript) {
     path.join(root, 'package.json'),
     JSON.stringify(packageJson, null, 2) + os.EOL
   );
+
+  const useYarn = useNpm ? false : shouldUseYarn();
+  process.chdir(root);
 }
 
 function checkAppName(appName) {
@@ -185,4 +196,30 @@ function isSafeToCreateProjectIn(root, projectName) {
   });
 
   return true;
+}
+
+function shouldUseYarn() {
+  try {
+    execSync('yarnpkg --version', { stdio: 'ignore' });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function run(root, appName, verbose, template, useYarn) {
+  const allDependencies = ['react', 'react-dom'];
+  const allDevDependencies = ['engine'];
+}
+
+function install(root, useYarn, dependencies, devDependencies, verbose) {
+  let command;
+  let args;
+  if (useYarn) {
+    command = 'yarn';
+    args = ['add', '--exact'];
+  } else {
+    command = 'npm';
+    args = ['install', '--save', '--save-exact', '--loglevel', 'error'];
+  }
 }

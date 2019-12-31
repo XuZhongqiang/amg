@@ -1,0 +1,18 @@
+{
+  "name": "amg-template-mobile",
+  "version": "0.0.1",
+  "keywords": [
+    "react",
+    "amg",
+    "template",
+    "mobile"
+  ],
+  "description": "移动端h5模板",
+  "main": "template.json",
+  "author": "wxfe",
+  "license": "MIT",
+  "files": [
+    "template",
+    "template.json"
+  ]
+}

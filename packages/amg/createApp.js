@@ -214,6 +214,11 @@ function run(root, appName, verbose, template, useYarn) {
   const allDependencies = ['react', 'react-dom'];
   const allDevDependencies = ['engine'];
 
+  console.log(
+    `正在安装 ${chalk.cyan('react')}, ${chalk.cyan('react-dom')}, ${chalk.cyan(
+      'engine'
+    )}, ${chalk.cyan('amg-template-mobile')}`
+  );
   install(root, useYarn, allDependencies, allDevDependencies, verbose, appName);
 }
 

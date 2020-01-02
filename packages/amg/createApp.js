@@ -13,6 +13,7 @@ const validateProjectName = require('validate-npm-package-name');
 const fse = require('fs-extra');
 const os = require('os');
 const execSync = require('child_process').execSync;
+const spawn = require('cross-spawn');
 
 const packageJson = require('./package.json');
 
@@ -114,6 +115,8 @@ function createApp(projectName, verbose, template, useNpm) {
 
   const useYarn = useNpm ? false : shouldUseYarn();
   process.chdir(root);
+
+  run(root, appName, verbose, template, useYarn);
 }
 
 function checkAppName(appName) {
@@ -210,16 +213,99 @@ function shouldUseYarn() {
 function run(root, appName, verbose, template, useYarn) {
   const allDependencies = ['react', 'react-dom'];
   const allDevDependencies = ['engine'];
+
+  install(root, useYarn, allDependencies, allDevDependencies, verbose, appName);
 }
 
-function install(root, useYarn, dependencies, devDependencies, verbose) {
+function install(
+  root,
+  useYarn,
+  dependencies,
+  devDependencies,
+  verbose,
+  appName
+) {
   let command;
-  let args;
+  let publicArgs;
+
   if (useYarn) {
     command = 'yarn';
-    args = ['add', '--exact'];
+    publicArgs = ['add', '--exact'];
   } else {
     command = 'npm';
-    args = ['install', '--save', '--save-exact', '--loglevel', 'error'];
+    publicArgs = ['install', '--save', '--save-exact', '--loglevel', 'error'];
   }
+
+  const args = publicArgs.concat(dependencies);
+  const devArgs = publicArgs.concat(devDependencies).concat('-D');
+
+  if (verbose) {
+    args.push('--verbose');
+    devArgs.push('--verbose');
+  }
+
+  const ret = spawn.sync(command, args, { stdio: 'inherit' });
+  const devRet = spawn.sync(command, devArgs, { stdio: 'inherit' });
+  if (ret.status !== 0) {
+    handleCommandError(
+      {
+        command: `${command} ${args.join(' ')}`,
+      },
+      root,
+      appName
+    );
+  }
+  if (devRet.status !== 0) {
+    handleCommandError(
+      {
+        command: `${command} ${devArgs.join(' ')}`,
+      },
+      root,
+      appName
+    );
+  }
+}
+
+function handleCommandError(reason, root, appName) {
+  console.log();
+  console.log('项目初始化失败');
+  if (reason.command) {
+    console.log(`  ${chalk.cyan(reason.command)} 运行失败`);
+  } else {
+    console.log(chalk.red('请联系前端同学:'));
+    console.log(reason);
+  }
+  console.log();
+
+  deleteAlreadyGeneratedFilesIn(root, appName);
+}
+
+/**
+ *
+ * @param {*} path 删除已经生成的文件
+ */
+function deleteAlreadyGeneratedFilesIn(root, appName) {
+  const knownGeneratedFiles = ['package.json', 'yarn.lock', 'node_modules'];
+
+  const currentFiles = fse.readdirSync(root);
+  currentFiles.forEach(file => {
+    if (knownGeneratedFiles.includes(file)) {
+      console.log(`正在删除 ${file}`);
+      fse.removeSync(path.join(root, file));
+    }
+  });
+
+  const remainingFiles = fse.readdirSync(root);
+  if (!remainingFiles.length) {
+    console.log(
+      `正在删除 ${chalk.cyan(
+        path.resolve(root, '..')
+      )} 目录下的文件夹 ${chalk.cyan(`${appName}/`)}`
+    );
+    process.chdir(path.resolve(root, '..'));
+    fse.removeSync(root);
+  }
+
+  console.log('删除完毕~~');
+  process.exit(1);
 }

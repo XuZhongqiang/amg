@@ -16,6 +16,7 @@
     "cross-spawn": "^7.0.1",
     "envinfo": "^7.5.0",
     "fs-extra": "^8.1.0",
+    "semver": "^7.1.1",
     "validate-npm-package-name": "^3.0.0"
   }
 }

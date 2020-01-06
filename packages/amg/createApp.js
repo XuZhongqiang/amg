@@ -14,6 +14,8 @@ const fse = require('fs-extra');
 const os = require('os');
 const execSync = require('child_process').execSync;
 const spawn = require('cross-spawn');
+const semver = require('semver');
+// const init = require('../engine/scripts/init');
 
 const packageJson = require('./package.json');
 
@@ -70,7 +72,7 @@ if (typeof projectName === 'undefined') {
   );
   console.log();
   console.log('例如: ');
-  console.log(`  ${chalk.cyan(program.name())} ${chalk.green('my-amg')}`);
+  console.log(`  ${chalk.cyan(program.name())} ${chalk.green('my-app')}`);
   console.log();
   console.log(
     `你可以通过运行 ${chalk.cyan(`${program.name()} --help`)}  来查看所有选项`
@@ -220,6 +222,10 @@ function run(root, appName, verbose, template, useYarn) {
     )}, ${chalk.cyan('amg-template-mobile')}`
   );
   install(root, useYarn, allDependencies, allDevDependencies, verbose, appName);
+
+  setVersionForRuntimeDepsIn(root);
+
+  // init(root, appName, verbose, template);
 }
 
 function install(
@@ -313,4 +319,68 @@ function deleteAlreadyGeneratedFilesIn(root, appName) {
 
   console.log('删除完毕~~');
   process.exit(1);
+}
+
+function setVersionForRuntimeDepsIn(root) {
+  const packagePath = path.join(root, 'package.json');
+  const packageJson = require(packagePath);
+
+  if (
+    typeof packageJson.dependencies === 'undefined' ||
+    typeof packageJson.devDependencies === 'undefined'
+  ) {
+    console.error(chalk.red('在package.json中缺少依赖项~'));
+    process.exit(1);
+  }
+
+  const engineVersion = packageJson.devDependencies.engine;
+  if (typeof engineVersion === 'undefined') {
+    console.error(chalk.red('在package.json中缺少engine依赖~'));
+    process.exit(1);
+  }
+
+  makeCaretRange(packageJson.dependencies, 'react');
+  makeCaretRange(packageJson.dependencies, 'react-dom');
+
+  fse.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + os.EOL);
+}
+
+/**
+ *
+ * @param {*} deps package.json的依赖项, devDependencies 或者 dependencies
+ * @param {*} depName 依赖名称
+ */
+function makeCaretRange(deps, depName) {
+  const version = deps[depName];
+
+  if (typeof version === 'undefined') {
+    console.error(chalk.red(`在package.json中缺少${depName}依赖~`));
+    process.exit(1);
+  }
+
+  let patchedVersion = `^${version}`;
+  if (!semver.validRange(patchedVersion)) {
+    console.error(
+      `无法修补${depName}的版本, 因为${patchedVersion}是个无效的版本号, 所以我们将为你设置成${version}`
+    );
+    patchedVersion = version;
+  }
+
+  deps[depName] = patchedVersion;
+}
+
+/**
+ *
+ * @param {*} cwd 子进程的当前工作目录
+ * @param {*} script 需要执行的script脚本
+ * @param {*} args 传给script脚本的参数
+ * -e, --eval "script"
+ * -- 指示 node 选项的结束。 其余的参数会被传给脚本。 如果在此之前没有提供脚本的文件名或 eval/print 脚本，则下一个参数将会被用作脚本的文件名。
+ */
+function executeNodeScript(cwd, script, args) {
+  return spawn.sync(
+    process.execPath,
+    ['-e', script, '--', JSON.stringify(args)],
+    { cwd }
+  );
 }

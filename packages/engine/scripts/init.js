@@ -16,6 +16,9 @@ function init(appPath, appName, verbose, templateName) {
     console.error('项目创建失败: 请指定初始化所需的模板.');
     return;
   }
+
+  // TODO: 这个模板路径，在开发的时候该怎么维护
+  const a = 1;
 }
 
 module.exports = init;

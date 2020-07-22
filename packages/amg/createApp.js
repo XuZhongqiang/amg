@@ -15,7 +15,7 @@ const os = require('os');
 const execSync = require('child_process').execSync;
 const spawn = require('cross-spawn');
 const semver = require('semver');
-// const init = require('../engine/scripts/init');
+const init = require('../engine/scripts/init');
 
 const packageJson = require('./package.json');
 
@@ -225,7 +225,7 @@ function run(root, appName, verbose, template, useYarn) {
 
   setVersionForRuntimeDepsIn(root);
 
-  // init(root, appName, verbose, template);
+  init(root, appName, verbose, template);
 }
 
 function install(

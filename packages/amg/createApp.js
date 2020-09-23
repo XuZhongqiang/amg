@@ -30,6 +30,7 @@ const program = new commander.Command()
   })
   .option('--verbose', '输出详细日志')
   .option('--info', '查看当前环境详细信息')
+  .option('--template <path-to-template>', '为项目指定模板')
   .option('--use-npm', '使用npm初始化项目')
   .on('--help', () => {
     console.log(`    只有 ${chalk.green('<project-directory>')} 是必需的`);

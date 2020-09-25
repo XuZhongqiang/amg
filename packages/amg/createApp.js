@@ -117,9 +117,10 @@ function createApp(projectName, verbose, template, useNpm) {
   );
 
   const useYarn = useNpm ? false : shouldUseYarn();
+  const originalDirectory = process.cwd();
   process.chdir(root);
 
-  run(root, appName, verbose, template, useYarn);
+  run(root, appName, verbose, template, useYarn, originalDirectory);
 }
 
 function checkAppName(appName) {
@@ -213,7 +214,7 @@ function shouldUseYarn() {
   }
 }
 
-function run(root, appName, verbose, template, useYarn) {
+function run(root, appName, verbose, template, useYarn, originalDirectory) {
   const allDependencies = ['react', 'react-dom'];
   const allDevDependencies = ['engine'];
 
@@ -226,7 +227,7 @@ function run(root, appName, verbose, template, useYarn) {
 
   setVersionForRuntimeDepsIn(root);
 
-  init(root, appName, verbose, template);
+  init(root, appName, verbose, template, originalDirectory);
 }
 
 function install(

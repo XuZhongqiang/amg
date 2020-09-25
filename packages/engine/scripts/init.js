@@ -61,7 +61,13 @@ function tryGitCommit(appPath) {
   }
 }
 
-function init(appPath, appName, verbose, templateName) {
+function init(
+  appPath,
+  appName,
+  verbose,
+  templateName = 'mobile',
+  originalDirectory
+) {
   const appPackage = require(path.join(appPath, 'package.json'));
   const useYarn = fse.existsSync(path.join(appPath, 'yarn.lock'));
 
@@ -282,6 +288,42 @@ function init(appPath, appName, verbose, templateName) {
     console.log();
     console.log('已为你执行git commit');
   }
+
+  let cdPath;
+  // 说明用户在originalDirectory文件夹下创建项目
+  console.log('originalDirectory: ', originalDirectory);
+  console.log('appName: ', appName);
+  console.log('appPath: ', appPath);
+  if (originalDirectory && path.join(originalDirectory, appName) === appPath) {
+    cdPath = appName;
+  } else {
+    cdPath = appPath;
+  }
+
+  const displayedCommand = useYarn ? 'yarn' : 'npm';
+  console.log();
+  console.log(`已为你在'${appPath}'目录下创建了'${appName}'`);
+  console.log('你可以执行以下命令:');
+  console.log();
+  console.log(`  运行项目:${chalk.cyan(` ${displayedCommand} start`)}`);
+  console.log();
+  console.log(
+    `  打包项目:${chalk.cyan(
+      ` ${displayedCommand} ${useYarn ? '' : 'run '}build`
+    )}`
+  );
+  console.log();
+  console.log('现在你不妨试试在命令行输入: ');
+  console.log(chalk.cyan('  cd'), cdPath);
+  console.log(`  ${chalk.cyan(`${displayedCommand} start`)}`);
+  if (readmeExists) {
+    console.log();
+    console.log(
+      chalk.yellow('文件夹下原先有`README.md`,已被重命名为`README.old.md`')
+    );
+  }
+  console.log();
+  console.log('Happy hacking!');
 }
 
 module.exports = init;

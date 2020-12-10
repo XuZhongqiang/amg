@@ -158,7 +158,7 @@ function init(
 
   // 设置eslint config
   appPackage.eslintConfig = {
-    extends: '@wxfe/eslint-config-ytian',
+    extends: '@wxfe/eslint-config-amg',
   };
 
   // 设置browserslist

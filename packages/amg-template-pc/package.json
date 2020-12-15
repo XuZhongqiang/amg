@@ -1,13 +1,13 @@
 {
-  "name": "@wxfe/amg-template-mobile",
-  "version": "0.0.2",
+  "name": "@wxfe/amg-template-pc",
+  "version": "0.0.5",
   "keywords": [
     "react",
     "amg",
     "template",
-    "mobile"
+    "pc"
   ],
-  "description": "移动端h5模板",
+  "description": "pc端模板",
   "main": "template.json",
   "author": "wxfe",
   "license": "MIT",

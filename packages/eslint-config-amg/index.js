@@ -68,7 +68,6 @@ const config = {
     'import/prefer-default-export': 'off',
     'jsx-a11y/no-static-element-interactions': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
-    // warn
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'class-methods-use-this': 'off',
     'consistent-return': 'off',
@@ -87,6 +86,8 @@ const config = {
     'newline-after-var': 1,
     'newline-before-return': 1,
     'no-restricted-globals': ['error'].concat(restrictedGlobals),
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    'react/jsx-props-no-spreading': 'off',
   },
 };
 

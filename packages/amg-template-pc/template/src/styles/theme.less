@@ -1,0 +1,104 @@
+@theme-primary-color: #161B27;
+@theme-primary-hover-color: #454752;
+@theme-btn-hover-color: #E9E9E9;
+@theme-brand-color: #CB9875;
+@theme-bg-hover-color: #FBF5F2;
+@theme-selected-color: #D19671;
+@theme-selected-shadow: 0 0 0 2px rgba(209, 150, 113, 0.15);
+
+.ant-btn{
+  &:hover{
+    background-color: @theme-btn-hover-color;
+  }
+}
+
+.ant-btn-primary{
+  &:hover{
+    background-color: @theme-primary-hover-color;
+  }
+}
+
+.ant-input-number,
+.ant-input,
+.ant-select-selection{
+  &:hover{
+    border-color: @theme-selected-color;
+    box-shadow: @theme-selected-shadow;
+  }
+  &:active{
+    border-color: @theme-selected-color;
+    box-shadow: @theme-selected-shadow;
+  }
+  &:focus{
+    border-color: @theme-selected-color;
+    box-shadow: @theme-selected-shadow;
+  }
+  &:visited{
+    border-color: @theme-selected-color;
+    box-shadow: @theme-selected-shadow;
+  }
+
+}
+
+.ant-select-open .ant-select-selection{
+  border-color: @theme-selected-color;
+  box-shadow: @theme-selected-shadow;
+}
+
+.ant-select-dropdown-menu-item:hover {
+  background-color: @theme-bg-hover-color
+}
+
+.ant-select-dropdown-menu-item-active {
+  background-color: @theme-bg-hover-color
+}
+
+.ant-select-dropdown-menu-item-selected {
+  color: @theme-brand-color;
+  &:hover{
+    color: @theme-brand-color;
+  }
+}
+
+
+.ant-calendar-picker:hover,
+.ant-calendar-picker:hover .ant-calendar-picker-input:not(.ant-input-disabled){
+  border-color: @theme-selected-color;
+  box-shadow: @theme-selected-shadow;
+}
+
+// 由于tag官方提供了很多颜色定义，不建议重置
+//.ant-tag{
+//  border: none;
+//  border-radius:15px;
+//  padding: 6px 11px;
+//  height: auto;
+//}
+
+// 日历选中重置
+.ant-calendar-selected-day .ant-calendar-date{
+  background: @theme-brand-color;
+}
+
+.ant-calendar-range .ant-calendar-in-range-cell:before{
+  background: @theme-bg-hover-color;
+}
+
+.ant-calendar-today .ant-calendar-date{
+  border-color: @theme-brand-color;
+}
+
+.ant-calendar-date:hover{
+  background: @theme-brand-color;
+  color: #fff;
+}
+
+
+.ant-dropdown-menu-item:hover{
+  background-color:@theme-bg-hover-color ;
+}
+
+.ant-select-dropdown-menu-item:hover:not(.ant-select-dropdown-menu-item-disabled),
+.ant-select-dropdown-menu-item-active:not(.ant-select-dropdown-menu-item-disabled){
+  background: @theme-bg-hover-color;
+}

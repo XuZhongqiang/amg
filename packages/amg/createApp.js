@@ -15,7 +15,7 @@ const os = require('os');
 const execSync = require('child_process').execSync;
 const spawn = require('cross-spawn');
 const semver = require('semver');
-const init = require('../engine/scripts/init');
+const inquirer = require('inquirer');
 
 const packageJson = require('./package.json');
 
@@ -30,7 +30,7 @@ const program = new commander.Command()
   })
   .option('--verbose', '输出详细日志')
   .option('--info', '查看当前环境详细信息')
-  .option('--template <path-to-template>', '为项目指定模板')
+  // .option('--template <path-to-template>', '为项目指定模板')
   .option('--use-npm', '使用npm初始化项目')
   .on('--help', () => {
     console.log(`    只有 ${chalk.green('<project-directory>')} 是必需的`);
@@ -55,8 +55,8 @@ if (program.info) {
         System: ['OS', 'CPU'],
         Binaries: ['Node', 'npm', 'Yarn'],
         Browsers: ['Chrome', 'Edge', 'Internet Explorer', 'Firefox', 'Safari'],
-        npmPackages: ['react', 'react-dom', 'engine'],
-        npmGlobalPackages: ['amg'],
+        npmPackages: ['react', 'react-dom', '@wxfe/engine'],
+        npmGlobalPackages: ['@wxfe/amg'],
       },
       {
         duplicates: true,
@@ -81,16 +81,16 @@ if (typeof projectName === 'undefined') {
   process.exit(1);
 }
 
-createApp(projectName, program.verbose, program.template, program.useNpm);
+createApp(projectName, program.verbose, program.useNpm);
 
 /**
  *
  * @param {*} projectName
  * @param {*} verbose
- * @param {*} template eg: 'typescript'用template作为字段来选择下载哪个模板
+ * @param {*} templateType eg: 'typescript'用template作为字段来选择下载哪个模板
  * @param {*} useNpm
  */
-function createApp(projectName, verbose, template, useNpm) {
+async function createApp(projectName, verbose, useNpm) {
   const root = path.resolve(projectName);
   const appName = path.basename(root);
 
@@ -99,8 +99,66 @@ function createApp(projectName, verbose, template, useNpm) {
   if (!isSafeToCreateProjectIn(root, projectName)) {
     process.exit(1);
   }
-  console.log();
 
+  const { templateType } = await inquirer.prompt([
+    {
+      name: 'templateType',
+      type: 'list',
+      message: '请选择项目模版：',
+      choices: [
+        { name: 'pc模板', value: 'pc' },
+        { name: 'pc模板(测试/后端同学请选此选项)', value: 'pc' },
+        { name: 'mobile模板', value: 'mobile' },
+        // { name: '本地文件', value: 'local' },
+        // { name: '从git上拉取已有模板', value: 'git' },
+        { name: '取消', value: false },
+      ],
+    },
+  ]);
+
+  if (!templateType) {
+    process.exit(1);
+  }
+
+  let templateLocalPath;
+  if (templateType === 'local') {
+    const result = await inquirer.prompt([
+      {
+        name: 'templateLocalPath',
+        type: 'input',
+        message:
+          "请输入模板文件的本地路径(以'file:'开头, 如'file:../path/to/your/template/amg-template-local'):",
+        default: '',
+      },
+    ]);
+    templateLocalPath = result.templateLocalPath;
+    if (!templateLocalPath) {
+      process.exit(1);
+    }
+    // if (!templateLocalPath)
+  }
+
+  let templateGit;
+  if (templateType === 'git') {
+    const result = await inquirer.prompt([
+      {
+        name: 'templateGit',
+        type: 'input',
+        message: '请输入模板的git地址:',
+        default: '',
+      },
+    ]);
+    templateGit = result.templateGit;
+    if (!templateGit) {
+      process.exit(1);
+    }
+    if (!templateGit.includes('://')) {
+      console.log(chalk.red('请输入正确的git地址'));
+      process.exit(1);
+    }
+  }
+
+  console.log();
   console.log(`正在为你创建新项目...`);
   console.log(`可以在目录 ${chalk.green(root)} 下查看`);
   console.log();
@@ -120,7 +178,8 @@ function createApp(projectName, verbose, template, useNpm) {
   const originalDirectory = process.cwd();
   process.chdir(root);
 
-  run(root, appName, verbose, template, useYarn, originalDirectory);
+  const templateConfig = { templateType, templateGit, templateLocalPath };
+  run(root, appName, verbose, templateConfig, useYarn, originalDirectory);
 }
 
 function checkAppName(appName) {
@@ -214,20 +273,54 @@ function shouldUseYarn() {
   }
 }
 
-function run(root, appName, verbose, template, useYarn, originalDirectory) {
-  const allDependencies = ['react', 'react-dom'];
-  const allDevDependencies = ['engine'];
-
-  console.log(
-    `正在安装 ${chalk.cyan('react')}, ${chalk.cyan('react-dom')}, ${chalk.cyan(
-      'engine'
-    )}, ${chalk.cyan('amg-template-mobile')}`
+function run(
+  root,
+  appName,
+  verbose,
+  templateConfig = {},
+  useYarn,
+  originalDirectory
+) {
+  const templateToInstall = getTemplateInstallPackage(templateConfig);
+  const allDependencies = ['react', 'react-dom', templateToInstall].filter(
+    Boolean
   );
+  const allDevDependencies = ['@wxfe/engine'];
+
+  console.log('正在安装依赖包, 这可能需要花费几分钟时间.');
+  console.log(
+    `正在安装${chalk.cyan('react')}, ${chalk.cyan('react-dom')}${
+      templateToInstall ? ', ' + chalk.cyan(templateToInstall) : ''
+    }`
+  );
+
   install(root, useYarn, allDependencies, allDevDependencies, verbose, appName);
 
   setVersionForRuntimeDepsIn(root);
 
-  init(root, appName, verbose, template, originalDirectory);
+  templateConfig.templateName = templateToInstall;
+  executeNodeScript(
+    process.cwd(),
+    [root, appName, verbose, templateConfig, originalDirectory],
+    `
+      const init = require('@wxfe/engine/scripts/init.js');
+      init.apply(null, JSON.parse(process.argv[1]));
+    `
+  );
+}
+
+function getTemplateInstallPackage(templateConfig = {}) {
+  const { templateType } = templateConfig;
+  if (!templateType) {
+    return;
+  }
+
+  let templateToInstall;
+  if (templateType === 'mobile' || templateType === 'pc') {
+    templateToInstall = `@wxfe/amg-template-${templateType}`;
+  }
+
+  return templateToInstall;
 }
 
 function install(
@@ -335,14 +428,15 @@ function setVersionForRuntimeDepsIn(root) {
     process.exit(1);
   }
 
-  const engineVersion = packageJson.devDependencies.engine;
+  const engineVersion = packageJson.devDependencies['@wxfe/engine'];
   if (typeof engineVersion === 'undefined') {
-    console.error(chalk.red('在package.json中缺少engine依赖~'));
+    console.error(chalk.red('在package.json中缺少@wxfe/engine依赖~'));
     process.exit(1);
   }
 
   makeCaretRange(packageJson.dependencies, 'react');
   makeCaretRange(packageJson.dependencies, 'react-dom');
+  makeCaretRange(packageJson.devDependencies, '@wxfe/engine');
 
   fse.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + os.EOL);
 }
@@ -379,10 +473,10 @@ function makeCaretRange(deps, depName) {
  * -e, --eval "script"
  * -- 指示 node 选项的结束。 其余的参数会被传给脚本。 如果在此之前没有提供脚本的文件名或 eval/print 脚本，则下一个参数将会被用作脚本的文件名。
  */
-function executeNodeScript(cwd, script, args) {
+function executeNodeScript(cwd, args, script) {
   return spawn.sync(
     process.execPath,
     ['-e', script, '--', JSON.stringify(args)],
-    { cwd }
+    { cwd, stdio: 'inherit' }
   );
 }

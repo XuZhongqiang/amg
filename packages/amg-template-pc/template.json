@@ -1,0 +1,18 @@
+{
+  "package": {
+    "dependencies": {
+      "react-router": "3.2.1",
+      "@wxfe/venom": "^1.0.0",
+      "@wxfe/venom-request": "^1.0.0",
+      "antd": "3.12.4",
+      "moment": "^2.22.2"
+    },
+    "devDependencies": {
+    },
+    "scripts": {
+      "mock:dev2": "mock dev2",
+      "mock:test2": "mock test2",
+      "mock:stable2": "mock stable2"
+    }
+  }
+}

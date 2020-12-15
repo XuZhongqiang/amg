@@ -1,5 +1,0 @@
-{
-  "extends": [
-    "@wxfe/stylelint-config-ytian"
-  ]
-}

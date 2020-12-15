@@ -1,12 +1,24 @@
 {
   "package": {
     "dependencies": {
-      "@testing-library/react": "^9.3.2",
-      "@testing-library/jest-dom": "^4.2.4",
-      "@testing-library/user-event": "^7.1.2"
+      "@wxfe/h5-cap": "^1.0.0",
+      "@wxfe/h5-jsbridge": "^1.1.7",
+      "@wxfe/request": "^1.0.0",
+      "@wxfe/utils": "^1.0.1",
+      "react-router": "3.2.1",
+      "react-addons-css-transition-group": "^15.6.0",
+      "react-redux": "5.0.7",
+      "react-router-redux": "4.0.8",
+      "redux": "3.7.2",
+      "redux-logger": "^3.0.6",
+      "redux-thunk": "2.3.0"
     },
     "devDependencies": {
-      "http-server": "^0.11.1"
+    },
+    "scripts": {
+      "mock:dev2": "mock mdev2 -a 15838564734 -p 3000",
+      "mock:test2": "mock mtest2 -a 15838564734 -p 3000",
+      "mock:stable2": "mock mstable2 -a 15838564734 -p 3000"
     }
   }
 }

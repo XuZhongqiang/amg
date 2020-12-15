@@ -14,7 +14,7 @@ var execOptions = {
 };
 
 function isProcessAReactApp(processCommand) {
-  return /^node .*engine\/scripts\/start\.js\s?$/.test(processCommand);
+  return /^node .*@wxfe\/engine\/scripts\/start\.js\s?$/.test(processCommand);
 }
 
 function getProcessIdOnPort(port) {

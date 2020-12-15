@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
 const webpack = require('webpack');
@@ -11,6 +12,7 @@ const PurgecssPlugin = require('purgecss-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
+const theme = require('./antd.theme.config');
 const paths = require('./paths');
 const appPackageJson = require(paths.appPackageJson);
 const cssRegex = /\.css$/;
@@ -24,9 +26,6 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
       options: cssOptions,
     },
     {
-      // Options for PostCSS as we reference these options twice
-      // Adds vendor prefixing based on your specified browser support in
-      // package.json
       loader: require.resolve('postcss-loader'),
       options: {
         postcssOptions: {
@@ -39,31 +38,27 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
               },
               stage: 3,
             }),
-            // Adds PostCSS Normalize as the reset css with default options,
-            // so that it honors browserslist config in package.json
-            // which in turn let's users customize the target behavior as per their needs.
             postcssNormalize(),
           ],
         },
-        sourceMap: true,
+        // sourceMap: true,
       },
     },
   ].filter(Boolean);
   if (preProcessor) {
-    loaders.push(
-      {
-        loader: require.resolve('resolve-url-loader'),
-        options: {
-          sourceMap: true,
+    const { target } = fs.existsSync(paths.appConfig)
+      ? require(paths.appConfig)
+      : {};
+    loaders.push({
+      loader: require.resolve(preProcessor),
+      options: {
+        // sourceMap: true,
+        lessOptions: {
+          javascriptEnabled: true,
+          modifyVars: target === 'pc' ? theme : undefined,
         },
       },
-      {
-        loader: require.resolve(preProcessor),
-        options: {
-          sourceMap: true,
-        },
-      }
-    );
+    });
   }
   return loaders;
 };
@@ -71,7 +66,7 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
 module.exports = {
   mode: 'production',
   bail: true,
-  devtool: 'source-map',
+  // devtool: 'source-map',
   entry: paths.appSrc,
   output: {
     path: paths.appBuild,
@@ -106,17 +101,13 @@ module.exports = {
             ascii_only: true,
           },
         },
-        sourceMap: true,
+        // sourceMap: true,
       }),
       new OptimizeCSSAssetsPlugin({
         cssProcessorOptions: {
           parser: safePostCssParser,
           map: {
-            // `inline: false` forces the sourcemap to be output into a
-            // separate file
             inline: false,
-            // `annotation: true` appends the sourceMappingURL to the end of
-            // the css file, helping the browser find the sourcemap
             annotation: true,
           },
         },
@@ -127,7 +118,31 @@ module.exports = {
     ],
     splitChunks: {
       chunks: 'all',
-      name: false,
+      maxInitialRequests: Infinity,
+      minSize: 30000,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: module => {
+            let packageName = '';
+            const packageScopeName = module.context.match(
+              /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+            )[1];
+
+            if (packageScopeName.includes('@')) {
+              const packageSubName = module.context.match(
+                /[\\/]node_modules[\\/](.*?)[\\/](.*?)([\\/]|$)/
+              )[2];
+              packageName = `${packageScopeName}-${packageSubName}`;
+            } else {
+              packageName = packageScopeName;
+            }
+
+            return `npm.${packageName.replace('@', '')}`;
+          },
+          chunks: 'all',
+        },
+      },
     },
     runtimeChunk: {
       name: entrypoint => `runtime-${entrypoint.name}`,
@@ -159,7 +174,7 @@ module.exports = {
             options: {
               babelrc: false,
               configFile: false,
-              presets: [require.resolve('../../babel-preset-amg')],
+              presets: [require.resolve('@wxfe/babel-preset-amg')],
               cacheDirectory: true,
               cacheCompression: false,
               compact: false,
@@ -174,22 +189,19 @@ module.exports = {
               configFile: false,
               compact: false,
               presets: [
-                [require.resolve('../../babel-preset-amg'), { helpers: true }],
+                [require.resolve('@wxfe/babel-preset-amg'), { helpers: true }],
               ],
               cacheDirectory: true,
               cacheCompression: false,
-              // Babel sourcemaps are needed for debugging into node_modules
-              // code.  Without the options below, debuggers like VSCode
-              // show incorrect code and set breakpoints on the wrong lines.
-              sourceMaps: true,
-              inputSourceMap: true,
+              // sourceMaps: true,
+              // inputSourceMap: true,
             },
           },
           {
             test: cssRegex,
             use: getStyleLoaders({
               importLoaders: 1,
-              sourceMap: true,
+              // sourceMap: true,
             }),
             sideEffects: true,
           },
@@ -198,7 +210,7 @@ module.exports = {
             use: getStyleLoaders(
               {
                 importLoaders: 3,
-                sourceMap: true,
+                // sourceMap: true,
               },
               'less-loader'
             ),
@@ -242,6 +254,7 @@ module.exports = {
     new PurgecssPlugin({
       paths: glob.sync(path.resolve(paths.appSrc, '**/*'), { nodir: true }),
     }),
+    // new webpack.DefinePlugin({'process.env.NODE_ENV': JSON.stringify('production')})
   ],
   node: {
     module: 'empty',

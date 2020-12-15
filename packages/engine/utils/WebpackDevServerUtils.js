@@ -136,7 +136,7 @@ function printInstructions(appName, urls, useYarn) {
   console.log();
 }
 
-function createCompiler({ appName, config, devSocket, urls, useYarn }) {
+function createCompiler({ appName, config, urls, useYarn }) {
   let complier;
   try {
     complier = webpack(config);

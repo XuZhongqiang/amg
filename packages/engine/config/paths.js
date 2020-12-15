@@ -6,19 +6,7 @@ const fs = require('fs');
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
 
-const moduleFileExtensions = [
-  'web.mjs',
-  'mjs',
-  'web.js',
-  'js',
-  'web.ts',
-  'ts',
-  'web.tsx',
-  'tsx',
-  'json',
-  'web.jsx',
-  'jsx',
-];
+const moduleFileExtensions = ['js', 'ts', 'tsx', 'json', 'jsx'];
 
 module.exports = {
   appPath: resolveApp('.'),
@@ -31,6 +19,7 @@ module.exports = {
   appSrc: resolveApp('src'),
   yarnLockFile: resolveApp('yarn.lock'),
   appNodeModules: resolveApp('node_modules'),
+  appConfig: resolveApp('amg.config.js'),
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

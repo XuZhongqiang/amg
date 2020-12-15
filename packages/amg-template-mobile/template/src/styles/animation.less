@@ -1,0 +1,197 @@
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate3d(0, -30%, 0);
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+ }
+}
+.slideInDown{
+  -webkit-animation: slideInDown .1s;
+  animation: slideInDown .1s;
+}
+
+@keyframes slideOutUp {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, -30%, 0);
+  }
+}
+.slideOutUp{
+  -webkit-animation: slideOutUp .1s forwards;
+  animation: slideOutUp .1s forwards;
+}
+
+@keyframes showToast {
+  50% {
+    top:16.67vw;
+  }
+  70% {
+    top:20vw;
+  }
+  100% {
+    top:16.67vw;
+  }
+}
+.showToast{
+  animation: showToast 0.3s forwards;
+}
+
+@keyframes hideToast {
+  0% {
+   top:16.67vw
+  }
+  100% {
+    top:-100vw;
+  }
+}
+.hideToast{
+  animation: hideToast 0.3s forwards;
+}
+
+// ////////////////////
+// 页面跳转动画
+.animation(@animation) {
+  animation: @animation 300ms;
+  animation-fill-mode: forwards;
+  // animation-timing-function: ease-in-out;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+// 左右
+.slideIn-left{
+  .animation(slideIn-left);
+}
+@keyframes slideIn-left{
+  from {transform: translate(100%);}
+  to {transform: translate(0%);}
+}
+
+.slideOut-left{
+  .animation(slideOut-left);
+}
+@keyframes slideOut-left{
+  from {transform: translate(0%);}
+  to {transform: translate(-100%);}
+}
+
+.slideIn-right{
+  .animation(slideIn-right);
+}
+@keyframes slideIn-right{
+  from {transform: translate(-100%);}
+  to {transform: translate(0%);}
+}
+
+.slideOut-right{
+  .animation(slideOut-right);
+}
+@keyframes slideOut-right{
+  from {transform: translate(0%);}
+  to {transform: translate(100%);}
+}
+
+.slide-left-enter {
+  .slideIn-left;
+  z-index: 9;
+}
+
+.slide-left-leave {
+  .slideOut-left;
+  z-index: 8;
+}
+
+.slide-right-enter {
+  .slideIn-right;
+  z-index: 0;
+}
+
+.slide-right-leave {
+  .slideOut-right;
+  z-index: 9;
+}
+//上下
+.slideIn-top{
+  .animation(slideIn-top);
+}
+@keyframes slideIn-top{
+  from {transform: translateY(100%);}
+  to {transform: translateY(0%);}
+}
+
+.slideOut-top{
+  // .animation(slideOut-top);
+}
+@keyframes slideOut-top{
+  from {transform: translateY(0%);}
+  to {transform: translateY(-100%);}
+}
+
+.slideIn-bottom{
+  // .animation(slideIn-bottom);
+}
+@keyframes slideIn-bottom{
+  from {transform: translateY(-100%);}
+  to {transform: translateY(0%);}
+}
+
+.slideOut-bottom{
+  .animation(slideOut-bottom);
+}
+@keyframes slideOut-bottom{
+  from {transform: translateY(0%);}
+  to {transform: translateY(100%);}
+}
+
+.slide-top-enter {
+  .slideIn-top;
+  z-index: 9;
+}
+
+.slide-top-leave {
+  .slideOut-top;
+  z-index: 8;
+}
+
+.slide-bottom-enter {
+  .slideIn-bottom;
+  z-index: 0;
+}
+
+.slide-bottom-leave {
+  .slideOut-bottom;
+  z-index: 9;
+}
+
+.fade-in{
+  animation: fade-in 0.3s;
+  animation-fill-mode:forwards;
+}
+@keyframes fade-in{
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+.fade-out{
+  animation: fade-out 0.3s;
+  animation-fill-mode:forwards;
+}
+@keyframes fade-out{
+  from {opacity: 1;}
+  to {opacity: 0;}
+}

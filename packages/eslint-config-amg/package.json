@@ -1,6 +1,6 @@
 {
-  "name": "@exfe/eslint-config-amg",
-  "version": "1.0.0",
+  "name": "@wxfe/eslint-config-amg",
+  "version": "0.0.2",
   "description": "ESLint configuration",
   "files": [
     "index.js"

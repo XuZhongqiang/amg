@@ -61,13 +61,7 @@ function tryGitCommit(appPath) {
   }
 }
 
-function init(
-  appPath,
-  appName,
-  verbose,
-  templateName = 'mobile',
-  originalDirectory
-) {
+function init(appPath, appName, verbose, { templateName }, originalDirectory) {
   const appPackage = require(path.join(appPath, 'package.json'));
   const useYarn = fse.existsSync(path.join(appPath, 'yarn.lock'));
 
@@ -77,13 +71,10 @@ function init(
     return;
   }
 
-  // TODO: 在正式发布模板前, 先暂时写死路劲吧
-  // const templatePath = path.join(
-  //   require.resolve(templateName, { paths: [appPath] }),
-  //   '..'
-  // );
-
-  const templatePath = path.resolve(__dirname, '../../amg-template-mobile');
+  const templatePath = path.dirname(
+    require.resolve(templateName, { paths: [appPath] }),
+    '..'
+  );
 
   const templateJsonPath = path.join(templatePath, 'template.json');
 
@@ -122,7 +113,7 @@ function init(
   ];
 
   // templatePackage中的以下字段需要合并
-  const templatePackageToMerge = ['dependencies', 'scripts'];
+  const templatePackageToMerge = ['dependencies', 'devDependencies', 'scripts'];
 
   const templatePackageToReplace = Object.keys(templatePackage).filter(
     key =>
@@ -135,7 +126,6 @@ function init(
 
   const templateScripts = templatePackage.scripts || {};
 
-  // TODO: mock的命令集成进来, 命令行或者是配置文件的形式
   // 合并scripts
   appPackage.scripts = Object.assign(
     {
@@ -282,7 +272,16 @@ function init(
     }
   }
 
-  //TODO: 删除node_modules中的template
+  // 删除node_modules中的template
+  console.log(`正在使用${command}删除${templateName}...`);
+  console.log();
+  const removeProcess = spawn.sync(command, [remove, templateName], {
+    stdio: 'inherit',
+  });
+  if (removeProcess.status !== 0) {
+    console.log(`\`${command} ${[remove, templateName].join(' ')}\` 执行失败`);
+    return;
+  }
 
   if (initializedGit && tryGitCommit()) {
     console.log();
@@ -290,10 +289,6 @@ function init(
   }
 
   let cdPath;
-  // 说明用户在originalDirectory文件夹下创建项目
-  console.log('originalDirectory: ', originalDirectory);
-  console.log('appName: ', appName);
-  console.log('appPath: ', appPath);
   if (originalDirectory && path.join(originalDirectory, appName) === appPath) {
     cdPath = appName;
   } else {

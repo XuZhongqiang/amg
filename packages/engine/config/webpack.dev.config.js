@@ -1,12 +1,14 @@
 'use strict';
 
+const fs = require('fs');
 const webpack = require('webpack');
 const postcssNormalize = require('postcss-normalize');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const EslintWebpackPlugin = require('eslint-webpack-plugin');
+// const EslintWebpackPlugin = require('eslint-webpack-plugin');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const { WatchMissingNodeModulesPlugin } = require('../utils');
 
+const theme = require('./antd.theme.config');
 const paths = require('./paths');
 const appPackageJson = require(paths.appPackageJson);
 const cssRegex = /\.css$/;
@@ -20,9 +22,6 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
       options: cssOptions,
     },
     {
-      // Options for PostCSS as we reference these options twice
-      // Adds vendor prefixing based on your specified browser support in
-      // package.json
       loader: require.resolve('postcss-loader'),
       options: {
         postcssOptions: {
@@ -35,9 +34,6 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
               },
               stage: 3,
             }),
-            // Adds PostCSS Normalize as the reset css with default options,
-            // so that it honors browserslist config in package.json
-            // which in turn let's users customize the target behavior as per their needs.
             postcssNormalize(),
           ],
         },
@@ -46,20 +42,19 @@ const getStyleLoaders = (cssOptions, preProcessor) => {
     },
   ].filter(Boolean);
   if (preProcessor) {
-    loaders.push(
-      {
-        loader: require.resolve('resolve-url-loader'),
-        options: {
-          sourceMap: false,
+    const { target } = fs.existsSync(paths.appConfig)
+      ? require(paths.appConfig)
+      : {};
+    loaders.push({
+      loader: require.resolve(preProcessor),
+      options: {
+        sourceMap: true,
+        lessOptions: {
+          javascriptEnabled: true,
+          modifyVars: target === 'pc' ? theme : undefined,
         },
       },
-      {
-        loader: require.resolve(preProcessor),
-        options: {
-          sourceMap: true,
-        },
-      }
-    );
+    });
   }
   return loaders;
 };
@@ -102,9 +97,10 @@ module.exports = {
               eslintPath: require.resolve('eslint'),
               resolvePluginsRelativeTo: __dirname,
               baseConfig: {
-                extends: [require.resolve('../../eslint-config-amg')],
+                extends: [require.resolve('@wxfe/eslint-config-amg')],
               },
               fix: true,
+              useEslintrc: false,
             },
             loader: require.resolve('eslint-loader'),
           },
@@ -128,7 +124,7 @@ module.exports = {
             options: {
               babelrc: false,
               configFile: false,
-              presets: [require.resolve('../../babel-preset-amg')],
+              presets: [require.resolve('@wxfe/babel-preset-amg')],
               cacheDirectory: true,
               cacheCompression: false,
               compact: false,
@@ -143,7 +139,7 @@ module.exports = {
               configFile: false,
               compact: false,
               presets: [
-                [require.resolve('../../babel-preset-amg'), { helpers: true }],
+                [require.resolve('@wxfe/babel-preset-amg'), { helpers: true }],
               ],
               cacheDirectory: true,
               cacheCompression: false,
@@ -166,7 +162,7 @@ module.exports = {
             test: lessRegex,
             use: getStyleLoaders(
               {
-                importLoaders: 3,
+                importLoaders: 2,
                 sourceMap: false,
               },
               'less-loader'
@@ -196,7 +192,7 @@ module.exports = {
     //   eslintPath: require.resolve('eslint'),
     //   resolvePluginsRelativeTo: __dirname,
     //   baseConfig: {
-    //     extends: [require.resolve('../../eslint-config-amg')]
+    //     extends: [require.resolve('@wxfe/eslint-config-amg')]
     //   },
     //   fix: true,
     // }),
@@ -204,6 +200,7 @@ module.exports = {
     new CaseSensitivePathsPlugin(), // 校验路径名大小写是否拼写正确,解决在OSX系统上大小写不敏感的问题
     new WatchMissingNodeModulesPlugin(paths.appNodeModules), // 如果开发时某个包未安装, 我们需要本地执行npm install xxx,这个插件可以让我们无需重启服务
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    // new webpack.DefinePlugin({'process.env.NODE_ENV': JSON.stringify('development')})
   ],
   // 某些包中引入了node的模块,但并未使用,下面的配置可以让webpack给这些包提供空的mock包,这样也就不会影响代码运行了,而且可以减少无用代码的引入
   node: {
